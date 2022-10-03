@@ -22,48 +22,52 @@ const updateTxsTokensMetadata = (txs: Transaction[]) =>
   new Promise<Transaction[]>(async (resolve, reject) => {
     const newTxs = [...txs];
 
-    for (let i = 0; i < newTxs.length; i++) {
-      try {
-        const timestamp = await provider
-          .getBlock(newTxs[i].blockNumber)
-          .then((data) => data.timestamp);
+    if (txs.length) {
+      for (let i = 0; i < newTxs.length; i++) {
+        try {
+          const timestamp = await provider
+            .getBlock(newTxs[i].blockNumber)
+            .then((data) => data.timestamp);
 
-        const actualToken = tokensData.find(
-          (x: Token) => x.id === newTxs[i].token
-        );
-
-        if (actualToken) {
-          newTxs[i] = {
-            ...newTxs[i],
-            tokenMetadata: actualToken,
-            timestamp,
-          };
-        } else {
-          const contract = new ethers.Contract(
-            newTxs[i].token!,
-            tokenAbi,
-            provider
+          const actualToken = tokensData.find(
+            (x: Token) => x.id === newTxs[i].token
           );
 
-          const symbol = await contract.symbol();
-          const decimals = await contract.decimals();
+          if (actualToken) {
+            newTxs[i] = {
+              ...newTxs[i],
+              tokenMetadata: actualToken,
+              timestamp,
+            };
+          } else {
+            const contract = new ethers.Contract(
+              newTxs[i].token!,
+              tokenAbi,
+              provider
+            );
 
-          tokensData.push({ id: newTxs[i].token!, symbol, decimals });
+            const symbol = await contract.symbol();
+            const decimals = await contract.decimals();
 
-          newTxs[i] = {
-            ...newTxs[i],
-            tokenMetadata: { symbol, decimals },
-            timestamp,
-          };
+            tokensData.push({ id: newTxs[i].token!, symbol, decimals });
+
+            newTxs[i] = {
+              ...newTxs[i],
+              tokenMetadata: { symbol, decimals },
+              timestamp,
+            };
+          }
+
+          if (i === newTxs.length - 1) {
+            resolve(newTxs);
+          }
+        } catch (err) {
+          console.log(err);
+          reject(err);
         }
-
-        if (i === newTxs.length - 1) {
-          resolve(newTxs);
-        }
-      } catch (err) {
-        console.log(err);
-        reject(err);
       }
+    } else {
+      resolve([]);
     }
   });
 
