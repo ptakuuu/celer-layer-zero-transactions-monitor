@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/celer-layer-zero-transactions-monitor/static/css/main.6bb20b18.css",
-    "main.js": "/celer-layer-zero-transactions-monitor/static/js/main.58be9547.js",
+    "main.js": "/celer-layer-zero-transactions-monitor/static/js/main.ff5a47af.js",
     "static/js/173.0fa44dc6.chunk.js": "/celer-layer-zero-transactions-monitor/static/js/173.0fa44dc6.chunk.js",
     "static/js/471.500501c6.chunk.js": "/celer-layer-zero-transactions-monitor/static/js/471.500501c6.chunk.js",
     "static/js/27.a2e02824.chunk.js": "/celer-layer-zero-transactions-monitor/static/js/27.a2e02824.chunk.js",
@@ -9,6 +9,6 @@
   },
   "entrypoints": [
     "static/css/main.6bb20b18.css",
-    "static/js/main.58be9547.js"
+    "static/js/main.ff5a47af.js"
   ]
 }
