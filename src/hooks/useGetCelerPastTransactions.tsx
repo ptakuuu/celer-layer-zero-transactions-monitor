@@ -22,52 +22,48 @@ const updateTxsTokensMetadata = (txs: Transaction[]) =>
   new Promise<Transaction[]>(async (resolve, reject) => {
     const newTxs = [...txs];
 
-    if (txs.length) {
-      for (let i = 0; i < newTxs.length; i++) {
-        try {
-          const timestamp = await provider
-            .getBlock(newTxs[i].blockNumber)
-            .then((data) => data.timestamp);
+    for (let i = 0; i < newTxs.length; i++) {
+      try {
+        const timestamp = await provider
+          .getBlock(newTxs[i].blockNumber)
+          .then((data) => data.timestamp);
 
-          const actualToken = tokensData.find(
-            (x: Token) => x.id === newTxs[i].token
+        const actualToken = tokensData.find(
+          (x: Token) => x.id === newTxs[i].token
+        );
+
+        if (actualToken) {
+          newTxs[i] = {
+            ...newTxs[i],
+            tokenMetadata: actualToken,
+            timestamp,
+          };
+        } else {
+          const contract = new ethers.Contract(
+            newTxs[i].token!,
+            tokenAbi,
+            provider
           );
 
-          if (actualToken) {
-            newTxs[i] = {
-              ...newTxs[i],
-              tokenMetadata: actualToken,
-              timestamp,
-            };
-          } else {
-            const contract = new ethers.Contract(
-              newTxs[i].token!,
-              tokenAbi,
-              provider
-            );
+          const symbol = await contract.symbol();
+          const decimals = await contract.decimals();
 
-            const symbol = await contract.symbol();
-            const decimals = await contract.decimals();
+          tokensData.push({ id: newTxs[i].token!, symbol, decimals });
 
-            tokensData.push({ id: newTxs[i].token!, symbol, decimals });
-
-            newTxs[i] = {
-              ...newTxs[i],
-              tokenMetadata: { symbol, decimals },
-              timestamp,
-            };
-          }
-
-          if (i === newTxs.length - 1) {
-            resolve(newTxs);
-          }
-        } catch (err) {
-          console.log(err);
-          reject(err);
+          newTxs[i] = {
+            ...newTxs[i],
+            tokenMetadata: { symbol, decimals },
+            timestamp,
+          };
         }
+
+        if (i === newTxs.length - 1) {
+          resolve(newTxs);
+        }
+      } catch (err) {
+        console.log(err);
+        reject(err);
       }
-    } else {
-      resolve([]);
     }
   });
 
@@ -102,7 +98,9 @@ export const useGetCelerPastTransactions = () => {
         sourceChain: 1,
       }));
 
-      depositedTxs = await updateTxsTokensMetadata(depositedTxs);
+      if (depositedTxs.length) {
+        depositedTxs = await updateTxsTokensMetadata(depositedTxs);
+      }
 
       let widthdrawnTxs: any[] = await contract.queryFilter(
         "Withdrawn",
@@ -121,7 +119,9 @@ export const useGetCelerPastTransactions = () => {
         sourceChain: Number(tx.args.refChainId),
       }));
 
-      widthdrawnTxs = await updateTxsTokensMetadata(widthdrawnTxs);
+      if (widthdrawnTxs.length) {
+        widthdrawnTxs = await updateTxsTokensMetadata(widthdrawnTxs);
+      }
 
       const lastTxs = depositedTxs.concat(widthdrawnTxs);
 
